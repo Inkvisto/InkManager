@@ -1,45 +1,42 @@
-use futures::select;
-use futures::FutureExt;
 
-use async_std::{
-    io::{stdin, BufReader},
-    net::{TcpStream, ToSocketAddrs},
-    prelude::*,
-    task,
-};
+use std::net::TcpStream;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+use smol::{future, io, Async, Unblock};
 
-pub(crate) fn main() -> Result<()> {
-    task::block_on(try_main("127.0.0.1:8080"))
-}
+pub fn main() -> io::Result<()> {
+    
+    
+    smol::block_on(async {
+        // Connect to the server and create async stdin and stdout.
+        let stream = Async::<TcpStream>::connect(([127, 0, 0, 1], 6000)).await?;
+        let stdin = Unblock::new(   std::io::stdin());
+        let mut stdout = Unblock::new(std::io::stdout());
 
-async fn try_main(addr: impl ToSocketAddrs) -> Result<()> {
-    let stream = TcpStream::connect(addr).await?;
-    let (reader, mut writer) = (&stream, &stream);
-    let reader = BufReader::new(reader);
-    let mut lines_from_server = futures::StreamExt::fuse(reader.lines());
+        // Intro messages.
 
-    let stdin = BufReader::new(stdin());
-    let mut lines_from_stdin = futures::StreamExt::fuse(stdin.lines());
-    loop {
-        select! {
-            line = lines_from_server.next().fuse() => match line {
-                Some(line) => {
-                    let line = line?;
-                    println!("{}", line);
-                },
-                None => break,
+        
+                        println!("Connected to {}", stream.get_ref().peer_addr()?);
+        println!("My nickname: {}", stream.get_ref().local_addr()?);
+        println!("Type a message and hit enter!\n");
+
+        let reader = &stream;
+        let mut writer = &stream;
+
+        // Wait until the standard input is closed or the connection is closed.
+        future::race(
+            async {
+                let res = io::copy(stdin, &mut writer).await;
+                println!("Quit!");
+                res
             },
-            line = lines_from_stdin.next().fuse() => match line {
-                Some(line) => {
-                    let line = line?;
-                    writer.write_all(line.as_bytes()).await?;
-                    writer.write_all(b"\n").await?;
-                }
-                None => break,
-            }
-        }
-    }
-    Ok(())
+            async {
+                let res = io::copy(reader, &mut stdout).await;
+                println!("Server disconnected!");
+                res
+            },
+        )
+        .await?;
+
+        Ok(())
+    })
 }

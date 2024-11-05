@@ -1,185 +1,98 @@
-use std::{
-    collections::hash_map::{Entry, HashMap},
-    sync::Arc,
-};
 
-use futures::{channel::mpsc, select, FutureExt, SinkExt};
+use std::collections::HashMap;
+use std::net::{SocketAddr, TcpListener, TcpStream};
 
-use async_std::{
-    io::BufReader,
-    net::{TcpListener, TcpStream, ToSocketAddrs},
-    prelude::*,
-    task,
-};
+use async_channel::{bounded, Receiver, Sender};
+use async_dup::Arc;
+use smol::{io, prelude::*, Async};
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
-type Sender<T> = mpsc::UnboundedSender<T>;
-type Receiver<T> = mpsc::UnboundedReceiver<T>;
+/// An event on the chat server.
+enum Event {
+    /// A client has joined.
+    Join(SocketAddr, Arc<Async<TcpStream>>),
 
-#[derive(Debug)]
-enum Void {}
+    /// A client has left.
+    Leave(SocketAddr),
 
-pub(crate) fn main() -> Result<()> {
-    task::block_on(accept_loop("127.0.0.1:8080"))
+    /// A client sent a message.
+    Message(SocketAddr, String),
 }
 
-async fn accept_loop(addr: impl ToSocketAddrs) -> Result<()> {
-    let listener = TcpListener::bind(addr).await?;
+/// Dispatches events to clients.
+async fn dispatch(receiver: Receiver<Event>) -> io::Result<()> {
+    // Currently active clients.
+    let mut map = HashMap::<SocketAddr, Arc<Async<TcpStream>>>::new();
 
-    let (broker_sender, broker_receiver) = mpsc::unbounded();
-    let broker = task::spawn(broker_loop(broker_receiver));
-    let mut incoming = listener.incoming();
-    while let Some(stream) = incoming.next().await {
-        let stream = stream?;
-        println!("Accepting from: {}", stream.peer_addr()?);
-        spawn_and_log_error(connection_loop(broker_sender.clone(), stream));
+    // Receive incoming events.
+    while let Ok(event) = receiver.recv().await {
+        // Process the event and format a message to send to clients.
+        let output = match event {
+            Event::Join(addr, stream) => {
+                map.insert(addr, stream);
+                format!("{} has joined\n", addr)
+            }
+            Event::Leave(addr) => {
+                map.remove(&addr);
+                format!("{} has left\n", addr)
+            }
+            Event::Message(addr, msg) => format!("{} says: {}\n", addr, msg),
+        };
+
+        // Display the event in the server process.
+        print!("{}", output);
+
+        // Send the event to all active clients.
+        for stream in map.values_mut() {
+            // Ignore errors because the client might disconnect at any point.
+            stream.write_all(output.as_bytes()).await.ok();
+        }
     }
-    drop(broker_sender);
-    broker.await;
     Ok(())
 }
 
-async fn connection_loop(mut broker: Sender<Event>, stream: TcpStream) -> Result<()> {
-    let stream = Arc::new(stream);
-    let reader = BufReader::new(&*stream);
-    let mut lines = reader.lines();
-
-    let name = match lines.next().await {
-        None => return Err("peer disconnected immediately".into()),
-        Some(line) => line?,
-    };
-    let (_shutdown_sender, shutdown_receiver) = mpsc::unbounded::<Void>();
-    broker
-        .send(Event::NewPeer {
-            name: name.clone(),
-            stream: Arc::clone(&stream),
-            shutdown: shutdown_receiver,
-        })
-        .await
-        .unwrap();
+/// Reads messages from the client and forwards them to the dispatcher task.
+async fn read_messages(sender: Sender<Event>, client: Arc<Async<TcpStream>>) -> io::Result<()> {
+    let addr = client.get_ref().peer_addr()?;
+    let mut lines = io::BufReader::new(client).lines();
 
     while let Some(line) = lines.next().await {
         let line = line?;
-        let (dest, msg) = match line.find(':') {
-            None => continue,
-            Some(idx) => (&line[..idx], line[idx + 1..].trim()),
-        };
-        let dest: Vec<String> = dest
-            .split(',')
-            .map(|name| name.trim().to_string())
-            .collect();
-        let msg: String = msg.trim().to_string();
+        sender.send(Event::Message(addr, line)).await.ok();
+    }
+    Ok(())
+}
 
-        broker
-            .send(Event::Message {
-                from: name.clone(),
-                to: dest,
-                msg,
+pub fn main() -> io::Result<()> {
+    smol::block_on(async {
+        // Create a listener for incoming client connections.
+        let listener = Async::<TcpListener>::bind(([127, 0, 0, 1], 6000))?;
+
+        // Intro messages.
+        println!("Listening on {}", listener.get_ref().local_addr()?);
+        println!("Start a chat client now!\n");
+
+        // Spawn a background task that dispatches events to clients.
+        let (sender, receiver) = bounded(100);
+        smol::spawn(dispatch(receiver)).detach();
+
+        loop {
+            // Accept the next connection.
+            let (stream, addr) = listener.accept().await?;
+            let client = Arc::new(stream);
+            let sender = sender.clone();
+
+            // Spawn a background task reading messages from the client.
+            smol::spawn(async move {
+                // Client starts with a `Join` event.
+                sender.send(Event::Join(addr, client.clone())).await.ok();
+
+                // Read messages from the client and ignore I/O errors when the client quits.
+                read_messages(sender.clone(), client).await.ok();
+
+                // Client ends with a `Leave` event.
+                sender.send(Event::Leave(addr)).await.ok();
             })
-            .await
-            .unwrap();
-    }
-
-    Ok(())
-}
-
-async fn connection_writer_loop(
-    messages: &mut Receiver<String>,
-    stream: Arc<TcpStream>,
-    mut shutdown: Receiver<Void>,
-) -> Result<()> {
-    let mut stream = &*stream;
-    loop {
-        select! {
-            msg = messages.next().fuse() => match msg {
-                Some(msg) => stream.write_all(msg.as_bytes()).await?,
-                None => break,
-            },
-            void = shutdown.next().fuse() => match void {
-                #[allow(unreachable_patterns)]
-                Some(void) => match void {},
-                None => break,
-            }
-        }
-    }
-    Ok(())
-}
-
-#[derive(Debug)]
-enum Event {
-    NewPeer {
-        name: String,
-        stream: Arc<TcpStream>,
-        shutdown: Receiver<Void>,
-    },
-    Message {
-        from: String,
-        to: Vec<String>,
-        msg: String,
-    },
-}
-
-async fn broker_loop(mut events: Receiver<Event>) {
-    let (disconnect_sender, mut disconnect_receiver) =
-        mpsc::unbounded::<(String, Receiver<String>)>();
-    let mut peers: HashMap<String, Sender<String>> = HashMap::new();
-
-    loop {
-        let event = select! {
-            event = events.next().fuse() => match event {
-                None => break,
-                Some(event) => event,
-            },
-            disconnect = disconnect_receiver.next().fuse() => {
-                let (name, _pending_messages) = disconnect.unwrap();
-                assert!(peers.remove(&name).is_some());
-                continue;
-            },
-        };
-        match event {
-            Event::Message { from, to, msg } => {
-                for addr in to {
-                    if let Some(peer) = peers.get_mut(&addr) {
-                        let msg = format!("from {}: {}\n", from, msg);
-                        peer.send(msg).await.unwrap();
-                    }
-                }
-            }
-            Event::NewPeer {
-                name,
-                stream,
-                shutdown,
-            } => match peers.entry(name.clone()) {
-                Entry::Occupied(..) => (),
-                Entry::Vacant(entry) => {
-                    let (client_sender, mut client_receiver) = mpsc::unbounded();
-                    entry.insert(client_sender);
-                    let mut disconnect_sender = disconnect_sender.clone();
-                    spawn_and_log_error(async move {
-                        let res =
-                            connection_writer_loop(&mut client_receiver, stream, shutdown).await;
-                        disconnect_sender
-                            .send((name, client_receiver))
-                            .await
-                            .unwrap();
-                        res
-                    });
-                }
-            },
-        }
-    }
-    drop(peers);
-    drop(disconnect_sender);
-    while let Some((_name, _pending_messages)) = disconnect_receiver.next().await {}
-}
-
-fn spawn_and_log_error<F>(fut: F) -> task::JoinHandle<()>
-where
-    F: Future<Output = Result<()>> + Send + 'static,
-{
-    task::spawn(async move {
-        if let Err(e) = fut.await {
-            eprintln!("{}", e)
+            .detach();
         }
     })
 }
