@@ -1,0 +1,19 @@
+[package]
+name = "observer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-lock = {workspace = true, optional = true }
+derive_tools = "0.32.0"
+
+[lib]
+path = "lib.rs"
+
+# [dev-dependencies]
+# async-lock = {workspace = true}
+
+[features]
+async-lock = ["dep:async-lock"]
+
+[dev-dependencies]
