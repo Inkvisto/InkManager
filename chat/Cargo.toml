@@ -1,21 +1,26 @@
 [package]
 name = "inkmanager-chat"
 version = "0.0.1"
-repository.workspace = true
-license.workspace = true
-edition.workspace = true
-rust-version.workspace = true
+edition = "2021"  # Define the edition for this crate.
+license = "MIT"   # Define license, or choose another one if needed.
+rust-version = "1.66"  # Adjust according to your Rust toolchain.
 
 [dependencies]
 async-channel = "2.3.1"
 async-dup = "1.2.4"
+async-lock.workspace = true
 smol = "2.0.2"
-# [dev-dependencies]
 
-[lints]
-workspace = true
+
+[workspace.dependencies]
+async-lock = "3.4.0"
 
 [[bin]]
 name = "chat"
-path = "./bin.rs"
+path = "./bin.rs"  # Adjust the path to your main binary file if necessary.
 
+[workspace]
+edition = "2021"
+members = [
+    "observer",  # List the crates that are part of this workspace
+]

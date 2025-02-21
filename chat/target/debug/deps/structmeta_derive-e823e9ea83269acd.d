@@ -1,0 +1,10 @@
+/home/egor/Desktop/managment/InkManager/chat/target/debug/deps/libstructmeta_derive-e823e9ea83269acd.so: /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/lib.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/syn_utils.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/parse.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/struct_meta.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/to_tokens.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/to_tokens_attribute.rs
+
+/home/egor/Desktop/managment/InkManager/chat/target/debug/deps/structmeta_derive-e823e9ea83269acd.d: /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/lib.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/syn_utils.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/parse.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/struct_meta.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/to_tokens.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/to_tokens_attribute.rs
+
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/lib.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/syn_utils.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/parse.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/struct_meta.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/to_tokens.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/structmeta-derive-0.2.0/src/to_tokens_attribute.rs:

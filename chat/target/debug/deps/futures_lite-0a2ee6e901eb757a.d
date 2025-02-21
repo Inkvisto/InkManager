@@ -1,0 +1,11 @@
+/home/egor/Desktop/managment/InkManager/chat/target/debug/deps/libfutures_lite-0a2ee6e901eb757a.rmeta: /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/lib.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/future.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/prelude.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/stream.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/io.rs
+
+/home/egor/Desktop/managment/InkManager/chat/target/debug/deps/libfutures_lite-0a2ee6e901eb757a.rlib: /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/lib.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/future.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/prelude.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/stream.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/io.rs
+
+/home/egor/Desktop/managment/InkManager/chat/target/debug/deps/futures_lite-0a2ee6e901eb757a.d: /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/lib.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/future.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/prelude.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/stream.rs /home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/io.rs
+
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/lib.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/future.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/prelude.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/stream.rs:
+/home/egor/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.4.0/src/io.rs:

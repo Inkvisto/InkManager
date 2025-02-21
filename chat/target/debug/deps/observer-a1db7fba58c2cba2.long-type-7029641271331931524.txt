@@ -1,0 +1,1 @@
+<L as Lock>::RwLockReadGuard<'_, ObservableState<T>>
