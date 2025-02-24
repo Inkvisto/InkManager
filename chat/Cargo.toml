@@ -1,7 +1,7 @@
 [package]
 name = "inkmanager-chat"
 version = "0.0.1"
-edition = "2021"  # Define the edition for this crate.
+edition = "2024"  # Define the edition for this crate.
 license = "MIT"   # Define license, or choose another one if needed.
 rust-version = "1.66"  # Adjust according to your Rust toolchain.
 
