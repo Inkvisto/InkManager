@@ -5,7 +5,7 @@
 //! https://datatracker.ietf.org/doc/html/rfc3986#section-3.1
 //!
 //!
-use crate::core::http::{
+use crate::{
     chars_sets::SCHEME,
     error::ErrorKind::{self, InvalidScheme, InvalidSchemeLength},
 };
@@ -41,7 +41,7 @@ impl Scheme {
         }
 
         if !uri_str.chars().all(|ch| SCHEME.contains(&ch)) {
-            return Err(ErrorKind::InvalidScheme(uri_str.to_string()));
+            return Err(InvalidScheme(uri_str.to_string()));
         }
 
         match uri_str {
@@ -52,6 +52,8 @@ impl Scheme {
     }
 }
 
+//[dev]:
+// maybe this impl not mandatory
 impl TryFrom<&[u8]> for Scheme {
     type Error = ErrorKind;
     fn try_from(uri_bytes: &[u8]) -> Result<Self, Self::Error> {

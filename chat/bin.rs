@@ -2,7 +2,7 @@ mod client;
 mod core;
 mod server;
 
-use core::http::uri::scheme;
+use uri::scheme;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
